@@ -1,2 +1,1 @@
 # SquirrelGame
-ffuf
