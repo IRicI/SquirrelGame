@@ -1,0 +1,18 @@
+package de.hsa.games.fatsquirrel;
+
+import de.hsa.games.fatsquirrel.core.Board;
+
+public class MoveGame extends Thread{
+	UI ui;
+	Board board;
+	public MoveGame(UI ui, Board board){
+		this.ui = ui;
+		this.board = board;
+	}
+	public void run() {
+		while (true) {
+		ui.execute(board);
+		}
+	}
+
+}
