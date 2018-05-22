@@ -12,7 +12,8 @@ public class MiniSquirrel extends MasterSquirrel {
 		if (!Stun()) {
 			context.tryMove(this, MiniMove(context,xyns.randomizer()));          //miniSquirrel immer noch geistig behindert (suicid) verbindung mit bot?
 		updateenergy(-1);
-		}if(getEnergy()<=0) {
+		}
+		if(getEnergy()<=0) {
 			context.kill(this);
 			}
 		if (true) {
