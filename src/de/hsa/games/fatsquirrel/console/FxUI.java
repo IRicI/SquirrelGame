@@ -1,10 +1,9 @@
-package de.hsa.games.fatsquirrel;
+package de.hsa.games.fatsquirrel.console;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 
-import de.hsa.games.fatsquirrel.console.GameCommandType;
 import de.hsa.games.fatsquirrel.core.Board;
 import de.hsa.games.fatsquirrel.core.BoardView;
 import de.hsa.games.fatsquirrel.core.Entity;
@@ -14,7 +13,6 @@ import de.hsa.games.fatsquirrel.core.XY;
 import de.hsa.games.fatsquirrel.util.ui.console.Command;
 import de.hsa.games.fatsquirrel.util.ui.console.CommandScanner;
 import javafx.application.Platform;
-import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -24,12 +22,14 @@ import javafx.scene.control.Label;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import Command.Commands;
 
 public class FxUI extends Scene implements UI {
 	private static final int CELL_SIZE = 30;
 	Canvas boardCanvas;
 	Label msgLabel;
 	static int puffer;
+	private Commands commands;
 	private PrintStream outputStream = System.out;
 	private BufferedReader inputReader = new BufferedReader(new InputStreamReader(System.in));
 	private CommandScanner commandscanner = new CommandScanner(inputReader);
@@ -42,7 +42,7 @@ public class FxUI extends Scene implements UI {
 		this.msgLabel = msgLabel;
 	}
 
-	public static FxUI createInstance(XY boardSize) {
+	public static FxUI createInstance(XY boardSize, Board board) {
 		Canvas boardCanvas = new Canvas(boardSize.getX() * CELL_SIZE, boardSize.getY() * CELL_SIZE);
 		Label statusLabel = new Label();
 		VBox top = new VBox();
@@ -54,6 +54,9 @@ public class FxUI extends Scene implements UI {
 			@Override
 			public void handle(KeyEvent keyEvent) {
 				switch(keyEvent.getCode()) {
+					case H:
+						help();
+						break;
 				case ESCAPE:
 					System.exit(0);
 					break;
@@ -69,6 +72,16 @@ public class FxUI extends Scene implements UI {
 				case LEFT:
 					puffer = 4;
 					break;
+					case S:
+						if((int) 100<getHandOperatedMasterSquirrel(board).getEnergy()) {
+							board.spawnMini((int) 100, (HandOperatedMasterSquirrel) getHandOperatedMasterSquirrel(board));
+						}else {
+							System.out.println("not enough energy");
+						}
+						break;
+					case E:
+						System.out.println(getHandOperatedMasterSquirrel(board).getEnergy());
+						break;
 				default:
 					break;
 				}
@@ -163,15 +176,68 @@ public class FxUI extends Scene implements UI {
 //			}
 //		});
 //	}
-
+	public MoveCommand getCommand(){
+	return new MoveCommand(puffer);
+}
 	@Override
-	public MoveCommand getCommand() {
-		return new MoveCommand(puffer);
+
+	public void execute(Board board) {
+		Command command = commandscanner.next();
+		GameCommandType commandType = (GameCommandType) command.getCommandType();
+
+		switch (commandType) {
+			case HELP:
+				help();
+				break;
+			case EXIT:
+				System.exit(0);
+				break;
+			case ALL:
+				break;
+			case LEFT:
+				puffer = 4;
+				break;
+			case UP:
+				puffer = 8;
+				break;
+			case DOWN:
+				puffer = 2;
+				break;
+			case RIGHT:
+				puffer = 6;
+				break;
+			case SPAWN_MINI:
+				if((int) command.getMinienergy()[0]<getHandOperatedMasterSquirrel(board).getEnergy()) {
+					board.spawnMini((int) command.getMinienergy()[0], (HandOperatedMasterSquirrel) getHandOperatedMasterSquirrel(board));
+				}else {
+					outputStream.println("not enough energy");
+				}
+				break;
+			case MASTER_ENERGY:
+				outputStream.println(getHandOperatedMasterSquirrel(board).getEnergy());
+				break;
+			default:
+
+				break;
+		}
 	}
 
-	@Override
-	public void execute(Board board) {
-		
-	
-	}	
+	private static void help() {
+		StringBuffer stringbuffer = new StringBuffer();
+		for ( int i = 0; i<GameCommandType.values().length; i++) {
+			stringbuffer.append(GameCommandType.values()[i].getName() + ": " + GameCommandType.values()[i].getHelpText() + "\n");
+		}
+		System.out.println(stringbuffer.toString());
+	}
+	public static Entity getHandOperatedMasterSquirrel(Board board) {
+		for (Entity entity : board.getEntityArray()) {
+			if(entity != null) {
+				if (entity.getClass().getSimpleName().equals("HandOperatedMasterSquirrel") ) {
+					return entity;
+				}
+			}
+		}
+		return null;
+	}
+
 }
